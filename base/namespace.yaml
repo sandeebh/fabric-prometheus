@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prometheus-fabric
+  labels:
+    istio-injection: enabled
+---
+
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: prometheus-limits
+  namespace: prometheus-fabric
+spec:
+  limits:
+  - default:  # this section defines default limits
+      cpu: "2"
+      memory: 4Gi
+    defaultRequest:  # this section defines default requests
+      cpu: 500m
+      memory: 500Mi
+    type: Container

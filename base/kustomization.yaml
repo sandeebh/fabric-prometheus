@@ -1,0 +1,180 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: prometheus-fabric
+resources:
+- namespace.yaml
+- virtual-service.yaml
+- docker-registry-secret.yaml
+- grafana-secret.yaml
+- postgres-secret.yaml
+
+helmCharts:
+- name: kube-prometheus-stack
+  repo: https://prometheus-community.github.io/helm-charts
+  version: "58.0.1"
+  releaseName: kube-prometheus-stack
+  valuesInline:
+    namespaceOverride: "prometheus-fabric"
+
+    crds:
+      enabled: true
+
+    defaultRules:
+      create: true
+      rules:
+        alertmanager: true
+        etcd: true
+        configReloaders: true
+        general: true
+        k8sContainerCpuUsageSecondsTotal: true
+        k8sContainerMemoryCache: true
+        k8sContainerMemoryRss: true
+        k8sContainerMemorySwap: true
+        k8sContainerResource: true
+        k8sContainerMemoryWorkingSetBytes: true
+        k8sPodOwner: true
+        kubeApiserverAvailability: true
+        kubeApiserverBurnrate: true
+        kubeApiserverHistogram: true
+        kubeApiserverSlos: true
+        kubeControllerManager: true
+        kubelet: true
+        kubeProxy: true
+        kubePrometheusGeneral: true
+        kubePrometheusNodeRecording: true
+        kubernetesApps: true
+        kubernetesResources: true
+        kubernetesStorage: true
+        kubernetesSystem: true
+        kubeSchedulerAlerting: true
+        kubeSchedulerRecording: true
+        kubeStateMetrics: true
+        network: true
+        node: true
+        nodeExporterAlerting: false
+        nodeExporterRecording: false
+        prometheus: true
+        prometheusOperator: true
+        windows: false
+
+      annotations: {}
+
+      runbookUrl: "https://runbooks.prometheus-operator.dev/runbooks"
+
+      disabled: {}
+      
+    global:
+      rbac:
+        create: true
+
+    alertmanager:
+      enabled: true
+      annotations: {}
+      apiVersion: v2
+    grafana:
+      enabled: true
+      namespaceOverride: "prometheus"
+      envFrom:
+      - secretRef:
+          name: "postgres-creds"
+      - secretRef:
+          name: "grafana-creds"
+      adminPassword: ${password}
+      grafana.ini:     
+        database:
+          type: postgres
+          host: ${postgres-address}
+          name: ${postgresdb-name}
+          user: "postgres"
+          password: ${postgres-password}
+          ssl_mode: require
+      serviceMonitor:
+        enabled: true
+    prometheusOperator:
+      serviceMonitor:
+        selfMonitor: true
+        serviceAccount:
+          create: true  
+    kubernetesServiceMonitors:
+      enabled: true
+
+    kubeApiServer:
+      enabled: true
+        
+    kubelet:
+      enabled: false
+      namespace: kube-system
+
+    kubeControllerManager:
+      enabled: false
+    coreDns:
+      enabled: false
+      service:
+        enabled: true
+        port: 9153
+        targetPort: 9153
+    kubeDns:
+      enabled: false
+      service:
+        dnsmasq:
+          port: 10054
+          targetPort: 10054
+        skydns:
+          port: 10055
+          targetPort: 10055
+        ipDualStack:
+          enabled: false
+          ipFamilies: ["IPv6", "IPv4"]
+          ipFamilyPolicy: "PreferDualStack"
+    kubeEtcd:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeProxy:
+      enabled: true
+    kubeStateMetrics:
+      enabled: true
+
+    kube-state-metrics:
+      namespaceOverride: "prometheus-fabric"
+      rbac:
+        create: true
+
+    nodeExporter:
+      enabled: false
+    prometheus:
+      enabled: true
+      annotations: {}
+      prometheusSpec:
+        additionalArgs:
+          - name: storage.tsdb.min-block-duration
+            value: "2h"
+          - name: storage.tsdb.max-block-duration
+            value: "2h"
+          - name: enable-feature
+            value: "memory-snapshot-on-shutdown"
+        retention: 5d
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 300Gi
+              selector:
+                matchLabels:
+                  app.kubernetes.io/name: prometheus
+        topologySpreadConstraints:
+          - maxSkew: 1
+            minDomains: 3
+            topologyKey: "topology.kubernetes.io/zone"
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: prometheus
+        externalLabels:
+          appname: prometheus
+          region: ${ARGOCD_ENV_CLOUD_REGION}
+
+      ingress:
+        enabled: false

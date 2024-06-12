@@ -1,0 +1,739 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    istio-injection: enabled
+  name: fabric-prometheus
+---
+apiVersion: v1
+imagePullSecrets:
+- name: docker-registry
+kind: ServiceAccount
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  labels:
+    app: kube-prometheus-stack-admission
+    app.kubernetes.io/component: prometheus-operator-webhook
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-admission
+  namespace: fabric-prometheus
+---
+apiVersion: v1
+automountServiceAccountToken: true
+imagePullSecrets:
+- name: docker-registry
+kind: ServiceAccount
+metadata:
+  labels:
+    app: kube-prometheus-stack-operator
+    app.kubernetes.io/component: prometheus-operator
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-operator
+  namespace: fabric-prometheus
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  labels:
+    app: kube-prometheus-stack-admission
+    app.kubernetes.io/component: prometheus-operator-webhook
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-admission
+  namespace: fabric-prometheus
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  labels:
+    app: kube-prometheus-stack-admission
+    app.kubernetes.io/component: prometheus-operator-webhook
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-admission
+rules:
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - validatingwebhookconfigurations
+  - mutatingwebhookconfigurations
+  verbs:
+  - get
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app: kube-prometheus-stack-operator
+    app.kubernetes.io/component: prometheus-operator
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-operator
+rules:
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - alertmanagers
+  - alertmanagers/finalizers
+  - alertmanagers/status
+  - alertmanagerconfigs
+  - prometheuses
+  - prometheuses/finalizers
+  - prometheuses/status
+  - prometheusagents
+  - prometheusagents/finalizers
+  - prometheusagents/status
+  - thanosrulers
+  - thanosrulers/finalizers
+  - thanosrulers/status
+  - scrapeconfigs
+  - servicemonitors
+  - podmonitors
+  - probes
+  - prometheusrules
+  verbs:
+  - '*'
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - '*'
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - list
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - services/finalizers
+  - endpoints
+  verbs:
+  - get
+  - create
+  - update
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - patch
+  - create
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  labels:
+    app: kube-prometheus-stack-admission
+    app.kubernetes.io/component: prometheus-operator-webhook
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-admission
+  namespace: fabric-prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kube-prometheus-stack-admission
+subjects:
+- kind: ServiceAccount
+  name: kube-prometheus-stack-admission
+  namespace: fabric-prometheus
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade,post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  labels:
+    app: kube-prometheus-stack-admission
+    app.kubernetes.io/component: prometheus-operator-webhook
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-admission
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kube-prometheus-stack-admission
+subjects:
+- kind: ServiceAccount
+  name: kube-prometheus-stack-admission
+  namespace: fabric-prometheus
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: kube-prometheus-stack-operator
+    app.kubernetes.io/component: prometheus-operator
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kube-prometheus-stack-operator
+subjects:
+- kind: ServiceAccount
+  name: kube-prometheus-stack-operator
+  namespace: fabric-prometheus
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kube-prometheus-stack-operator
+    app.kubernetes.io/component: prometheus-operator
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-operator
+  namespace: fabric-prometheus
+spec:
+  ports:
+  - name: https
+    port: 443
+    targetPort: https
+  selector:
+    app: kube-prometheus-stack-operator
+    release: kube-prometheus-stack
+  type: ClusterIP
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: prometheus-limits
+  namespace: fabric-prometheus
+spec:
+  limits:
+  - default:
+      cpu: "2"
+      memory: 4Gi
+    defaultRequest:
+      cpu: 500m
+      memory: 500Mi
+    type: Container
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kube-prometheus-stack-operator
+    app.kubernetes.io/component: prometheus-operator
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-operator
+  namespace: fabric-prometheus
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: kube-prometheus-stack-operator
+      release: kube-prometheus-stack
+  template:
+    metadata:
+      labels:
+        app: kube-prometheus-stack-operator
+        app.kubernetes.io/component: prometheus-operator
+        app.kubernetes.io/instance: kube-prometheus-stack
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+        app.kubernetes.io/part-of: kube-prometheus-stack
+        app.kubernetes.io/version: 58.0.1
+        chart: kube-prometheus-stack-58.0.1
+        heritage: Helm
+        release: kube-prometheus-stack
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - args:
+        - --kubelet-service=kube-system/kube-prometheus-stack-kubelet
+        - --localhost=127.0.0.1
+        - --prometheus-config-reloader=quay.io/prometheus-operator/prometheus-config-reloader:v0.73.0
+        - --config-reloader-cpu-request=0
+        - --config-reloader-cpu-limit=0
+        - --config-reloader-memory-request=0
+        - --config-reloader-memory-limit=0
+        - --thanos-default-base-image=quay.io/thanos/thanos:v0.34.1
+        - --secret-field-selector=type!=kubernetes.io/dockercfg,type!=kubernetes.io/service-account-token,type!=helm.sh/release.v1
+        - --web.enable-tls=true
+        - --web.cert-file=/cert/cert
+        - --web.key-file=/cert/key
+        - --web.listen-address=:10250
+        - --web.tls-min-version=VersionTLS13
+        env:
+        - name: GOGC
+          value: "30"
+        image: quay.io/prometheus-operator/prometheus-operator:v0.73.0
+        imagePullPolicy: IfNotPresent
+        name: kube-prometheus-stack
+        ports:
+        - containerPort: 10250
+          name: https
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /cert
+          name: tls-secret
+          readOnly: true
+      imagePullSecrets:
+      - name: docker-registry
+      securityContext:
+        fsGroup: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: kube-prometheus-stack-operator
+      volumes:
+      - name: tls-secret
+        secret:
+          defaultMode: 420
+          secretName: kube-prometheus-stack-admission
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  labels:
+    app: kube-prometheus-stack-admission-create
+    app.kubernetes.io/component: prometheus-operator-webhook
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-admission-create
+  namespace: fabric-prometheus
+spec:
+  template:
+    metadata:
+      labels:
+        app: kube-prometheus-stack-admission-create
+        app.kubernetes.io/component: prometheus-operator-webhook
+        app.kubernetes.io/instance: kube-prometheus-stack
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+        app.kubernetes.io/part-of: kube-prometheus-stack
+        app.kubernetes.io/version: 58.0.1
+        chart: kube-prometheus-stack-58.0.1
+        heritage: Helm
+        release: kube-prometheus-stack
+      name: kube-prometheus-stack-admission-create
+    spec:
+      containers:
+      - args:
+        - create
+        - --host=kube-prometheus-stack-operator,kube-prometheus-stack-operator.fabric-prometheus.svc
+        - --namespace=fabric-prometheus
+        - --secret-name=kube-prometheus-stack-admission
+        image: registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20221220-controller-v1.5.1-58-g787ea74b6
+        imagePullPolicy: IfNotPresent
+        name: create
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      restartPolicy: OnFailure
+      securityContext:
+        runAsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 2000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: kube-prometheus-stack-admission
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  labels:
+    app: kube-prometheus-stack-admission-patch
+    app.kubernetes.io/component: prometheus-operator-webhook
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-admission-patch
+  namespace: fabric-prometheus
+spec:
+  template:
+    metadata:
+      labels:
+        app: kube-prometheus-stack-admission-patch
+        app.kubernetes.io/component: prometheus-operator-webhook
+        app.kubernetes.io/instance: kube-prometheus-stack
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+        app.kubernetes.io/part-of: kube-prometheus-stack
+        app.kubernetes.io/version: 58.0.1
+        chart: kube-prometheus-stack-58.0.1
+        heritage: Helm
+        release: kube-prometheus-stack
+      name: kube-prometheus-stack-admission-patch
+    spec:
+      containers:
+      - args:
+        - patch
+        - --webhook-name=kube-prometheus-stack-admission
+        - --namespace=fabric-prometheus
+        - --secret-name=kube-prometheus-stack-admission
+        - --patch-failure-policy=
+        image: registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20221220-controller-v1.5.1-58-g787ea74b6
+        imagePullPolicy: IfNotPresent
+        name: patch
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      restartPolicy: OnFailure
+      securityContext:
+        runAsGroup: 2000
+        runAsNonRoot: true
+        runAsUser: 2000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: kube-prometheus-stack-admission
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app: kube-prometheus-stack-operator
+    app.kubernetes.io/component: prometheus-operator
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-operator
+  namespace: fabric-prometheus
+spec:
+  endpoints:
+  - honorLabels: true
+    port: https
+    scheme: https
+    tlsConfig:
+      ca:
+        secret:
+          key: ca
+          name: kube-prometheus-stack-admission
+          optional: false
+      serverName: kube-prometheus-stack-operator
+  namespaceSelector:
+    matchNames:
+    - fabric-prometheus
+  selector:
+    matchLabels:
+      app: kube-prometheus-stack-operator
+      release: kube-prometheus-stack
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: grafana
+  namespace: fabric-prometheus
+spec:
+  gateways:
+  - istio-ingress/operators-https-gw
+  hosts:
+  - fabric-grafana.operators.ep-mt.eks.${ARGOCD_ENV_CLOUD_REGION}.aws.smarsh.cloud
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: grafana
+        port:
+          number: 80
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: prometheus
+  namespace: fabric-prometheus
+spec:
+  gateways:
+  - istio-ingress/operators-https-gw
+  hosts:
+  - fabric-prometheus.operators.ep-mt.eks.${ARGOCD_ENV_CLOUD_REGION}.aws.smarsh.cloud
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: prometheus-server
+        port:
+          number: 9090
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: docker-registry
+  namespace: fabric-prometheus
+spec:
+  destination:
+    create: true
+    name: docker-registry
+    type: kubernetes.io/dockerconfigjson
+  mount: concourse
+  path: shared/docker-registry
+  refreshAfter: 30s
+  type: kv-v2
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: grafana-creds
+  namespace: fabric-prometheus
+spec:
+  destination:
+    create: true
+    name: grafana-creds
+  mount: concourse
+  path: shared/grafana-creds
+  refreshAfter: 30s
+  type: kv-v2
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultStaticSecret
+metadata:
+  name: postgres-creds
+  namespace: fabric-prometheus
+spec:
+  destination:
+    create: true
+    name: postgres-creds
+  mount: concourse
+  path: enterprise-archive/ep-ea-grafana-postgres-smarsh-${ARGOCD_ENV_CLOUD_REGION}/db-instance
+  refreshAfter: 30s
+  type: kv-v2
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  labels:
+    app: kube-prometheus-stack-admission
+    app.kubernetes.io/component: prometheus-operator-webhook
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-admission
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: kube-prometheus-stack-operator
+      namespace: fabric-prometheus
+      path: /admission-prometheusrules/mutate
+  failurePolicy: Ignore
+  name: prometheusrulemutate.monitoring.coreos.com
+  rules:
+  - apiGroups:
+    - monitoring.coreos.com
+    apiVersions:
+    - '*'
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - prometheusrules
+  sideEffects: None
+  timeoutSeconds: 10
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  labels:
+    app: kube-prometheus-stack-admission
+    app.kubernetes.io/component: prometheus-operator-webhook
+    app.kubernetes.io/instance: kube-prometheus-stack
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kube-prometheus-stack-prometheus-operator
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    app.kubernetes.io/version: 58.0.1
+    chart: kube-prometheus-stack-58.0.1
+    heritage: Helm
+    release: kube-prometheus-stack
+  name: kube-prometheus-stack-admission
+webhooks:
+- admissionReviewVersions:
+  - v1
+  - v1beta1
+  clientConfig:
+    service:
+      name: kube-prometheus-stack-operator
+      namespace: fabric-prometheus
+      path: /admission-prometheusrules/validate
+  failurePolicy: Ignore
+  name: prometheusrulemutate.monitoring.coreos.com
+  rules:
+  - apiGroups:
+    - monitoring.coreos.com
+    apiVersions:
+    - '*'
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - prometheusrules
+  sideEffects: None
+  timeoutSeconds: 10
